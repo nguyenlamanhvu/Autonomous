@@ -1,0 +1,12 @@
+../Core/Src/MPU9250.c:24:6:MPU9250_Writebyte	1
+../Core/Src/MPU9250.c:29:6:MPU9250_Writebytes	1
+../Core/Src/MPU9250.c:34:6:MPU9250_Readbyte	1
+../Core/Src/MPU9250.c:39:6:MPU9250_Readbytes	1
+../Core/Src/MPU9250.c:44:6:MPU9250_Initialization	2
+../Core/Src/MPU9250.c:127:6:MPU9250_Get6AxisRawData	1
+../Core/Src/MPU9250.c:143:6:MPU9250_Get_LSB_Sensitivity	9
+../Core/Src/MPU9250.c:179:6:MPU_readProcessedData	1
+../Core/Src/MPU9250.c:227:6:MPU_calibrateGyro	3
+../Core/Src/MPU9250.c:256:6:CalculateAccAngle	1
+../Core/Src/MPU9250.c:275:6:CalculateGyroAngle	1
+../Core/Src/MPU9250.c:282:6:CalculateCompliFilter	1
