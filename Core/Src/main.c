@@ -57,6 +57,7 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 uint16_t status;
+uint8_t status_mag;
 Struct_MPU9250 MPU9250;
 Struct_Angle Angle;
 /* USER CODE END 0 */

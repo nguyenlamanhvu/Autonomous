@@ -15,7 +15,25 @@ extern "C" {
 #include "main.h"
 #include "math.h"
 #define RADIAN_TO_DEGREE 180.0/M_PI
-
+//Magnetometer Registers
+#define AK8963_ADDRESS   0x0C<<1
+#define AK8963_WHO_AM_I  0x00 // should return 0x48
+#define AK8963_INFO      0x01
+#define AK8963_ST1       0x02  // data ready status bit 0
+#define AK8963_XOUT_L    0x03  // data
+#define AK8963_XOUT_H    0x04
+#define AK8963_YOUT_L    0x05
+#define AK8963_YOUT_H    0x06
+#define AK8963_ZOUT_L    0x07
+#define AK8963_ZOUT_H    0x08
+#define AK8963_ST2       0x09  // Data overflow bit 3 and data read error status bit 2
+#define AK8963_CNTL      0x0A  // Power down (0000), single-measurement (0001), self-test (1000) and Fuse ROM (1111) modes on bits 3:0
+#define AK8963_ASTC      0x0C  // Self test control
+#define AK8963_I2CDIS    0x0F  // I2C disable
+#define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
+#define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
+#define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
+//MPU9250 register map
 #define MPU9250_SELF_TEST_X_GYRO        0x00        /*!< Gyroscope self-test registers */
 #define MPU9250_SELF_TEST_Y_GYRO        0x01
 #define MPU9250_SELF_TEST_Z_GYRO        0x02
@@ -129,6 +147,9 @@ typedef struct _MPU9250{
 	short gyro_x_raw;
 	short gyro_y_raw;
 	short gyro_z_raw;
+	short mag_x_raw;
+	short mag_y_raw;
+	short mag_z_raw;
 
 	float acc_x;
 	float acc_y;
@@ -179,13 +200,13 @@ typedef struct _Angle{
 extern Struct_Angle Angle;
 
 //I2C interface
-void MPU9250_Writebyte(uint8_t reg_addr, uint8_t val);
-void MPU9250_Writebytes(uint8_t reg_addr, uint8_t len, uint8_t* data);
-void MPU9250_Readbyte(uint8_t reg_addr, uint8_t* data);
-void MPU9250_Readbytes(uint8_t reg_addr, uint8_t len, uint8_t* data);
+void MPU9250_Writebyte(uint8_t device_addr,uint8_t reg_addr, uint8_t val);
+void MPU9250_Writebytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data);
+void MPU9250_Readbyte(uint8_t device_addr,uint8_t reg_addr, uint8_t* data);
+void MPU9250_Readbytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data);
 //MPU9250
 void MPU9250_Initialization(void);
-void MPU9250_Get6AxisRawData(Struct_MPU9250* pMPU9250);
+void MPU9250_Get9AxisRawData(Struct_MPU9250* pMPU9250);
 void MPU9250_Get_LSB_Sensitivity(uint8_t FS_SCALE_GYRO, uint8_t FS_SCALE_ACC);
 void MPU_readProcessedData(Struct_MPU9250 *pMPU9250);
 void MPU_calibrateGyro(Struct_MPU9250 *pMPU9250, uint16_t numCalPoints);

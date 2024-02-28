@@ -9,9 +9,13 @@
 #include "main.h"
 extern I2C_HandleTypeDef hi2c1;
 extern uint16_t status;
+extern uint8_t status_mag;
 
 static float LSB_Sensitivity_ACC;
 static float LSB_Sensitivity_GYRO;
+
+// magnetometer sensitivity adjustment values
+float mag_bias_factory[3];
 
 //low pass filter
 float x_Low, y_Low, z_Low, x_old, y_old, z_old;
@@ -21,24 +25,32 @@ const float dtt2 = (1.0 / 200.0); // sample rate
 const float RC2 = 0.35;
 const float alpha2 = dtt2 / (RC2 + dtt2);
 
-void MPU9250_Writebyte(uint8_t reg_addr, uint8_t val)
+enum Mscale {
+  MFS_14BITS = 0, // 0.6 mG per LSB
+  MFS_16BITS      // 0.15 mG per LSB
+};
+
+uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
+uint8_t Mmode = 0x02;
+
+void MPU9250_Writebyte(uint8_t device_addr,uint8_t reg_addr, uint8_t val)
 {
-	HAL_I2C_Mem_Write(&hi2c1, MPU9250_ADDR, reg_addr, I2C_MEMADD_SIZE_8BIT, &val, 1, 1);
+	HAL_I2C_Mem_Write(&hi2c1, device_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, &val, 1, 1);
 }
 
-void MPU9250_Writebytes(uint8_t reg_addr, uint8_t len, uint8_t* data)
+void MPU9250_Writebytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data)
 {
-	HAL_I2C_Mem_Write(&hi2c1, MPU9250_ADDR, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, 1);
+	HAL_I2C_Mem_Write(&hi2c1, device_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, 1);
 }
 
-void MPU9250_Readbyte(uint8_t reg_addr, uint8_t* data)
+void MPU9250_Readbyte(uint8_t device_addr,uint8_t reg_addr, uint8_t* data)
 {
-	HAL_I2C_Mem_Read(&hi2c1, MPU9250_ADDR, reg_addr, I2C_MEMADD_SIZE_8BIT, data, 1, 1);
+	HAL_I2C_Mem_Read(&hi2c1, device_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, data, 1, 1);
 }
 
-void MPU9250_Readbytes(uint8_t reg_addr, uint8_t len, uint8_t* data)
+void MPU9250_Readbytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data)
 {
-	HAL_I2C_Mem_Read(&hi2c1, MPU9250_ADDR, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, 1);
+	HAL_I2C_Mem_Read(&hi2c1, device_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, data, len, 1);
 }
 
 void MPU9250_Initialization(void)
@@ -49,8 +61,9 @@ void MPU9250_Initialization(void)
 
 	HAL_Delay(50);
 	uint8_t who_am_i = 0;
+	uint8_t who_am_i_AK8963 = 0;
 
-	MPU9250_Readbyte(MPU9250_WHO_AM_I, &who_am_i);
+	MPU9250_Readbyte(MPU9250_ADDR, MPU9250_WHO_AM_I, &who_am_i);
 	if(who_am_i == 0x71)		//default value is 0x71
 	{
 		status = 1;			// who_am_i correct
@@ -66,25 +79,25 @@ void MPU9250_Initialization(void)
 
 	//Reset the whole module before initialization
 	//Reset the internal registers and restores the default settings.  Write a 1 to set the reset, the bit will auto clear.
-	MPU9250_Writebyte(MPU9250_PWR_MGMT_1, 0x1<<7);
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_PWR_MGMT_1, 0x1<<7);
 	HAL_Delay(100);
 
 	//Power Management setting
 	/* Default is sleep mode
 	 * necessary to wake up MPU6050*/
-	MPU9250_Writebyte(MPU9250_PWR_MGMT_1, 0x00);
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_PWR_MGMT_1, 0x00);
 	HAL_Delay(50);
 
 	//Sample rate divider
 	/*Sample Rate = GYRO output rate / (1 + SMPRT_DIV) */
 	//	MPU9250_Writebyte(MPU9250_SMPLRT_DIV, 0x00); // ACC output rate is 1kHz, GYRO output rate is 8kHz (Normal mode)
-	MPU9250_Writebyte(MPU9250_SMPLRT_DIV, 39); // Sample Rate = 200Hz		//**********************
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_SMPLRT_DIV, 39); // Sample Rate = 200Hz		//**********************
 	HAL_Delay(50);
 
 	//FSYNC and DLPF setting
 	//fchoice[1:0]=2'b11 ; fchoice_b[1:0]=2'b00
 	/*DLPF is set to 0*/
-	MPU9250_Writebyte(MPU9250_CONFIG, 0x00);								//**********************
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_CONFIG, 0x00);								//**********************
 	HAL_Delay(50);
 
 	//GYRO FULL SCALE setting
@@ -94,7 +107,7 @@ void MPU9250_Initialization(void)
 	  2		+-1000 degree/s
 	  3		+-2000 degree/s	*/
 	uint8_t FS_SCALE_GYRO = 0x03;
-	MPU9250_Writebyte(MPU9250_GYRO_CONFIG, FS_SCALE_GYRO<<3);
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_GYRO_CONFIG, FS_SCALE_GYRO<<3);
 	HAL_Delay(50);
 
 	//ACCEL FULL SCALE setting
@@ -104,8 +117,46 @@ void MPU9250_Initialization(void)
 	  2		+-8g
 	  3		+-16g	*/
 	uint8_t FS_SCALE_ACC = 0x0;
-	MPU9250_Writebyte(MPU9250_ACCEL_CONFIG, FS_SCALE_ACC<<3);
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_ACCEL_CONFIG, FS_SCALE_ACC<<3);
 	HAL_Delay(50);
+
+	//enable Mag bypass
+	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_INT_PIN_CFG, 0x02);
+	/* Magnetometer Device Connection Check */
+	MPU9250_Readbyte(AK8963_ADDRESS, AK8963_WHO_AM_I, &who_am_i_AK8963);
+	if(who_am_i_AK8963 == 0x48)		//default value is 0x48
+	{
+		status_mag = 1;			// who_am_i_AK8963 correct
+	}
+	else
+	{
+		status_mag = 0;			// who_am_i_AK8963 incorrect
+		while(1)
+		{
+			HAL_Delay(100);
+		}
+	}
+	/* Magnetometer Power Down */
+	MPU9250_Writebyte(AK8963_ADDRESS, AK8963_CNTL, 0x00);
+	HAL_Delay(50);
+	//Enter Fuse ROM access mode
+	MPU9250_Writebyte(AK8963_ADDRESS, AK8963_CNTL, 0x0F);
+	HAL_Delay(50);
+	uint8_t raw_data[3];
+	// Read the x-, y-, and z-axis calibration values
+	MPU9250_Readbytes(AK8963_ADDRESS, AK8963_ASAX, 3, &raw_data[0]);
+	mag_bias_factory[0] = (float)(raw_data[0] - 128) / 256. + 1.;  // Return x-axis sensitivity adjustment values, etc.
+	mag_bias_factory[1] = (float)(raw_data[1] - 128) / 256. + 1.;
+	mag_bias_factory[2] = (float)(raw_data[2] - 128) / 256. + 1.;
+	HAL_Delay(50);
+	//Power down magnetometer
+	MPU9250_Writebyte(AK8963_ADDRESS, AK8963_CNTL, 0x00);
+	HAL_Delay(50);
+	// Configure the magnetometer for continuous read and highest resolution
+	// set Mscale bit 4 to 1 (0) to enable 16 (14) bit resolution in CNTL register,
+	// and enable continuous mode data acquisition MAG_MODE (bits [3:0]), 0010 for 8 Hz and 0110 for 100 Hz sample rates
+	// Set magnetometer data resolution and sample ODR
+	MPU9250_Writebyte(AK8963_ADDRESS, AK8963_CNTL, Mscale << 4 | 0x02);
 
 	MPU9250_Get_LSB_Sensitivity(FS_SCALE_GYRO, FS_SCALE_ACC);
 
@@ -124,10 +175,10 @@ void MPU9250_Initialization(void)
 }
 
 /*Get Raw Data from sensor*/
-void MPU9250_Get6AxisRawData(Struct_MPU9250* pMPU9250)
+void MPU9250_Get9AxisRawData(Struct_MPU9250* pMPU9250)
 {
 	uint8_t data[14];
-	MPU9250_Readbytes(MPU9250_ACCEL_XOUT_H, 14, data);
+	MPU9250_Readbytes(MPU9250_ADDR, MPU9250_ACCEL_XOUT_H, 14, data);
 
 	pMPU9250->acc_x_raw = (data[0] << 8) | data[1];
 	pMPU9250->acc_y_raw = (data[2] << 8) | data[3];
@@ -138,6 +189,20 @@ void MPU9250_Get6AxisRawData(Struct_MPU9250* pMPU9250)
 	pMPU9250->gyro_x_raw = ((data[8] << 8) | data[9]);
 	pMPU9250->gyro_y_raw = ((data[10] << 8) | data[11]);
 	pMPU9250->gyro_z_raw = ((data[12] << 8) | data[13]);
+
+	uint8_t readData = 0;
+	MPU9250_Readbyte(AK8963_ADDRESS, AK8963_ST1, &readData);
+	if (readData & 0x01) {                                                    // wait for magnetometer data ready bit to be set
+		uint8_t raw_data[7];                                             // x/y/z gyro register data, ST2 register stored here, must read ST2 at end of data acquisition
+		MPU9250_Readbytes(AK8963_ADDRESS, AK8963_XOUT_L, 7, &raw_data[0]);      // Read the six raw data and ST2 registers sequentially into data array
+
+		uint8_t c = raw_data[6];                                         // End data read by reading ST2 register
+		if (!(c & 0x08)) {                                               // Check if magnetic sensor overflow set, if not then report data
+			pMPU9250->mag_x_raw = ((int16_t)raw_data[1] << 8) | raw_data[0];  // Turn the MSB and LSB into a signed 16-bit value
+			pMPU9250->mag_y_raw = ((int16_t)raw_data[3] << 8) | raw_data[2];  // Data stored as little Endian
+			pMPU9250->mag_z_raw = ((int16_t)raw_data[5] << 8) | raw_data[4];
+		}
+	}
 }
 
 void MPU9250_Get_LSB_Sensitivity(uint8_t FS_SCALE_GYRO, uint8_t FS_SCALE_ACC)
@@ -179,7 +244,7 @@ void MPU9250_Get_LSB_Sensitivity(uint8_t FS_SCALE_GYRO, uint8_t FS_SCALE_ACC)
 void MPU_readProcessedData(Struct_MPU9250 *pMPU9250)
 {
     // Get raw values from the IMU
-	MPU9250_Get6AxisRawData(pMPU9250);
+	MPU9250_Get9AxisRawData(pMPU9250);
 
     // Convert accelerometer values to g's
     pMPU9250->acc_x = pMPU9250->acc_x_raw / LSB_Sensitivity_ACC;
@@ -240,7 +305,7 @@ void MPU_calibrateGyro(Struct_MPU9250 *pMPU9250, uint16_t numCalPoints)
     // Save specified number of points
     for (uint16_t ii = 0; ii < numCalPoints; ii++)
     {
-    	MPU9250_Get6AxisRawData(pMPU9250);
+    	MPU9250_Get9AxisRawData(pMPU9250);
         xx += pMPU9250->gyro_x_raw;
         yy += pMPU9250->gyro_y_raw;
         zz += pMPU9250->gyro_z_raw;
