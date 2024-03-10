@@ -1,0 +1,4 @@
+../Core/Src/motor.c:23:10:MOTOR_Create	2
+../Core/Src/motor.c:38:6:MOTOR_Destroy	1
+../Core/Src/motor.c:49:6:MOTOR_Init	1
+../Core/Src/motor.c:60:6:MOTOR_ControlSpeed	1

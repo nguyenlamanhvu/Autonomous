@@ -1,0 +1,2 @@
+../Core/Src/mpu9250_app.c:6:6:CalculateAccAngle	1
+../Core/Src/mpu9250_app.c:12:6:CalculateGyroAngle	1

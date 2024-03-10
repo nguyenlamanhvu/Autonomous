@@ -1,20 +1,17 @@
-/*
- * MPU9250.h
- *
- *  Created on: Feb 27, 2024
- *      Author: Nguyen Lam Anh Vu
- */
+#ifndef DRIVERS_MPU_9250_H_
+#define DRIVERS_MPU_9250_H_
 
-#ifndef INC_MPU9250_H_
-#define INC_MPU9250_H_
+/*********************
+ *      INCLUDES
+ *********************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <stdint.h>
 #include "main.h"
-#include "math.h"
-#define RADIAN_TO_DEGREE 180.0/M_PI
+
+/*********************
+ *      DEFINES
+ *********************/
+
 //Magnetometer Registers
 #define AK8963_ADDRESS   0x0C<<1
 #define AK8963_WHO_AM_I  0x00 // should return 0x48
@@ -27,7 +24,8 @@ extern "C" {
 #define AK8963_ZOUT_L    0x07
 #define AK8963_ZOUT_H    0x08
 #define AK8963_ST2       0x09  // Data overflow bit 3 and data read error status bit 2
-#define AK8963_CNTL      0x0A  // Power down (0000), single-measurement (0001), self-test (1000) and Fuse ROM (1111) modes on bits 3:0
+#define AK8963_CNTL1     0x0A  // Power down (0000), single-measurement (0001), self-test (1000) and Fuse ROM (1111) modes on bits 3:0
+#define AK8963_CNTL2	 0x0B
 #define AK8963_ASTC      0x0C  // Self test control
 #define AK8963_I2CDIS    0x0F  // I2C disable
 #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
@@ -46,7 +44,7 @@ extern "C" {
 #define MPU9250_YG_OFFSET_L             0x16
 #define MPU9250_ZG_OFFSET_H             0x17
 #define MPU9250_ZG_OFFSET_L             0x18
-#define MPU9250_SMPLRT_DIV              0x19        /*!< Sample rate divider */
+#define MPU9250_SMPRT_DIV               0x19        /*!< Sample rate divider */
 #define MPU9250_CONFIG                  0x1A        /*!< Configuration */
 #define MPU9250_GYRO_CONFIG             0x1B        /*!< Gyroscope configuration */
 #define MPU9250_ACCEL_CONFIG            0x1C        /*!< Accelerometer configuration */
@@ -135,18 +133,29 @@ extern "C" {
 #define MPU9250_ZA_OFFSET_H             0x7D
 #define MPU9250_ZA_OFFSET_L             0x7E
 #define MPU9250_ADDR                    (0x68<<1)   /*!< MPU9250 Address */
+//#define MPU9250_INT_PIN_CFG             0x37        /*!< Interrupt pin/bypass enable configuration */
+//#define MPU9250_ADDR                    (0x68<<1)   /*!< MPU9250 Address */
 
-#define MPU9250_INT_PORT 	GPIOB
-#define MPU9250_INT_PIN 	GPIO_PIN_5
+/**********************
+ *      TYPEDEFS
+ **********************/
+// float LSB_Sensitivity_ACC;
+// float LSB_Sensitivity_GYRO;
+// uint16_t error;
+extern I2C_HandleTypeDef hi2c1;
 
-typedef struct _MPU9250{
+typedef struct _MPU9250
+{
 	short acc_x_raw;
 	short acc_y_raw;
 	short acc_z_raw;
+
 	short temperature_raw;
+
 	short gyro_x_raw;
 	short gyro_y_raw;
 	short gyro_z_raw;
+
 	short mag_x_raw;
 	short mag_y_raw;
 	short mag_z_raw;
@@ -154,7 +163,9 @@ typedef struct _MPU9250{
 	float acc_x;
 	float acc_y;
 	float acc_z;
+
 	float temperature;
+
 	float gyro_x;
 	float gyro_y;
 	float gyro_z;
@@ -170,52 +181,33 @@ typedef struct _MPU9250{
     float cal_gyx;
 	float cal_gyy;
 	float cal_gyz;
-}Struct_MPU9250;
+} MPU9250_t;
 
-extern Struct_MPU9250 MPU9250;
+typedef struct imu_9250 imu_9250_t;
 
-typedef struct _Angle{
-	float acc_roll;
-	float acc_pitch;
-	float acc_yaw;
+struct imu_9250
+{
+	//	I2C_HandleTypeDef *hi2c;
+	void (*get_data)(imu_9250_t *const imu_p);
+	MPU9250_t pt1_p;
+};
 
-	float gyro_roll;
-	float gyro_pitch;
-	float gyro_yaw;
+/**********************
+ *     OPERATION
+ **********************/
 
-	float ComFilt_roll;
-	float ComFilt_pitch;
-	float ComFilt_yaw;
+imu_9250_t *IMU_9250_Create();
+void IMU_9250_Destroy(imu_9250_t *const imu_p);
 
-
-	float acc_roll_filt;
-	float acc_pitch_filt;
-	float acc_yaw_filt;
-
-    float Filt_roll;
-	float Filt_pitch;
-	float Filt_yaw;
-}Struct_Angle;
-
-extern Struct_Angle Angle;
-
-//I2C interface
 void MPU9250_Writebyte(uint8_t device_addr,uint8_t reg_addr, uint8_t val);
 void MPU9250_Writebytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data);
 void MPU9250_Readbyte(uint8_t device_addr,uint8_t reg_addr, uint8_t* data);
 void MPU9250_Readbytes(uint8_t device_addr,uint8_t reg_addr, uint8_t len, uint8_t* data);
-//MPU9250
-void MPU9250_Initialization(void);
-void MPU9250_Get9AxisRawData(Struct_MPU9250* pMPU9250);
 void MPU9250_Get_LSB_Sensitivity(uint8_t FS_SCALE_GYRO, uint8_t FS_SCALE_ACC);
-void MPU_readProcessedData(Struct_MPU9250 *pMPU9250);
-void MPU_calibrateGyro(Struct_MPU9250 *pMPU9250, uint16_t numCalPoints);
-//Caculate angle
-void CalculateAccAngle(Struct_Angle* Angle, Struct_MPU9250 *pMPU9250);
-void CalculateGyroAngle(Struct_Angle* Angle, Struct_MPU9250 *pMPU9250);
-void CalculateCompliFilter(Struct_Angle* Angle, Struct_MPU9250 *pMPU9250);
+void MPU9250_ProcessData(imu_9250_t *mpu9250);
+void MPU9250_Get6AxisRawData(imu_9250_t *mpu9250);
+void MPU9250_GetMagRawData(imu_9250_t *mpu9250);
+void MPU9250_DataConvert(imu_9250_t *mpu9250);
+void calibrateGyro(imu_9250_t *mpu9250, uint16_t numCalPoints);
 
-#ifdef __cplusplus
-}
-#endif
-#endif /* INC_MPU9250_H_ */
+#endif /* DRIVERS_MPU_9250_H_ */
