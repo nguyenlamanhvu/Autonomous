@@ -1,7 +1,7 @@
 #ifndef __CALCULATEANGELE_H__
 #define __CALCULATEANGELE_H__
 
-#include "mpu9250.h"
+#include "MPU9250.h"
 
 #define RADIAN_TO_DEGREE 180 / 3.141592f
 

@@ -2,7 +2,7 @@
  *      INCLUDES
  *********************/
 
-#include "mpu9250.h"
+#include "MPU9250.h"
 #include <stdlib.h>
 
 float LSB_Sensitivity_ACC;

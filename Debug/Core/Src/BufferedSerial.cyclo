@@ -1,0 +1,11 @@
+../Core/Src/BufferedSerial.cpp:17:1:BufferedSerial::BufferedSerial(UART_HandleTypeDef&)	1
+../Core/Src/BufferedSerial.cpp:21:6:void BufferedSerial::init()	1
+../Core/Src/BufferedSerial.cpp:26:5:int BufferedSerial::read()	2
+../Core/Src/BufferedSerial.cpp:43:6:void BufferedSerial::write(const uint8_t*, int)	4
+../Core/Src/BufferedSerial.cpp:62:6:void BufferedSerial::flush_tx_buffer()	9
+../Core/Src/BufferedSerial.cpp:99:13:void BufferedSerial::reset_rx_buffer()	1
+../Core/Src/BufferedSerial.cpp:104:27:UART_HandleTypeDef* const BufferedSerial::get_handle()	1
+../Core/Src/BufferedSerial.cpp:108:6:void HAL_UART_TxCpltCallback(UART_HandleTypeDef*)	2
+../Core/Src/BufferedSerial.cpp:115:6:void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)	1
+../Core/Src/BufferedSerial.cpp:117:1:void __static_initialization_and_destruction_0(int, int)	3
+../Core/Src/BufferedSerial.cpp:117:1:cpp)	1
