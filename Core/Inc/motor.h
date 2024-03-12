@@ -21,12 +21,16 @@
 /**********************
  *      TYPEDEFS
  **********************/
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim1;		//Timer for PWM mode
+extern TIM_HandleTypeDef htim2;		//Timer for Encoder mode
 
 /* Motor structure */
 typedef struct _MOTOR_prop
 {
-	uint16_t speed;
+	int16_t  out_speed;
+	int16_t  timer_counter;
+	int16_t  measure_speed;
+	int16_t  set_point;
 }MOTOR_prop_t;		//motor properties structure
 
 typedef struct motor motor_t;

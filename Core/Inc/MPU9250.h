@@ -31,6 +31,8 @@
 #define AK8963_ASAX      0x10  // Fuse ROM x-axis sensitivity adjustment value
 #define AK8963_ASAY      0x11  // Fuse ROM y-axis sensitivity adjustment value
 #define AK8963_ASAZ      0x12  // Fuse ROM z-axis sensitivity adjustment value
+
+#define     Magnetometer_Sensitivity_Scale_Factor ((float)0.15f)
 //MPU9250 register map
 #define MPU9250_SELF_TEST_X_GYRO        0x00        /*!< Gyroscope self-test registers */
 #define MPU9250_SELF_TEST_Y_GYRO        0x01
@@ -136,6 +138,7 @@
 //#define MPU9250_INT_PIN_CFG             0x37        /*!< Interrupt pin/bypass enable configuration */
 //#define MPU9250_ADDR                    (0x68<<1)   /*!< MPU9250 Address */
 
+#define DEG_TO_RAD   3.141592f / 180
 /**********************
  *      TYPEDEFS
  **********************/
@@ -169,6 +172,10 @@ typedef struct _MPU9250
 	float gyro_x;
 	float gyro_y;
 	float gyro_z;
+
+	float mag_x;
+	float mag_y;
+	float mag_z;
 
     float Filt_accx;
 	float Filt_accy;

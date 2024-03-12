@@ -50,6 +50,7 @@ void MOTOR_Init(motor_t *motor_p, void (*ctrl_speed_func)(motor_t *motor_p))
 {
 	motor_p->control_speed = ctrl_speed_func;
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_Encoder_Start_IT(&htim2, TIM_CHANNEL_ALL);
 }
 
 /*
@@ -60,5 +61,5 @@ void MOTOR_Init(motor_t *motor_p, void (*ctrl_speed_func)(motor_t *motor_p))
 void MOTOR_ControlSpeed(motor_t *motor_p)
 {
 //	TIM1->CCR1 = motor_p->Prop_p.speed;
-	__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,motor_p->Prop_p.speed);
+	__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_1,motor_p->Prop_p.out_speed);
 }

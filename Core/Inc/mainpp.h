@@ -5,6 +5,12 @@
 extern "C" {
 #endif
 
+#include "MPU9250.h"
+#include "mpu9250_app.h"
+
+extern imu_9250_t* imu_9250_0;
+extern Struct_Angle Angle;
+
 void setup(void);
 void loop(void);
 

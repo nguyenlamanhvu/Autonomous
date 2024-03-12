@@ -60,11 +60,16 @@
 ../Core/Inc/ros_lib/sensor_msgs/Imu.h:60:17:virtual int sensor_msgs::Imu::deserialize(unsigned char*)	4
 ../Core/Inc/ros_lib/sensor_msgs/Imu.h:79:26:virtual const char* sensor_msgs::Imu::getType()	1
 ../Core/Inc/ros_lib/sensor_msgs/Imu.h:80:26:virtual const char* sensor_msgs::Imu::getMD5()	1
+../Core/Inc/ros_lib/sensor_msgs/MagneticField.h:23:5:sensor_msgs::MagneticField::MagneticField()	2
+../Core/Inc/ros_lib/sensor_msgs/MagneticField.h:30:17:virtual int sensor_msgs::MagneticField::serialize(unsigned char*) const	2
+../Core/Inc/ros_lib/sensor_msgs/MagneticField.h:41:17:virtual int sensor_msgs::MagneticField::deserialize(unsigned char*)	2
+../Core/Inc/ros_lib/sensor_msgs/MagneticField.h:52:26:virtual const char* sensor_msgs::MagneticField::getType()	1
+../Core/Inc/ros_lib/sensor_msgs/MagneticField.h:53:26:virtual const char* sensor_msgs::MagneticField::getMD5()	1
 ../Core/Inc/ros_lib/ros/node_handle.h:50:7:constexpr ros::NodeHandleBase_::NodeHandleBase_()	1
 ../Core/Inc/ros_lib/ros/node_handle.h:104:7:constexpr ros::NodeHandle_<STM32Hardware>::NodeHandle_()	1
-../Core/Src/mainpp.cpp:16:6:void led_cb(const std_msgs::Empty&)	1
-../Core/Src/mainpp.cpp:26:6:void setup()	1
-../Core/Src/mainpp.cpp:34:6:void loop()	1
+../Core/Src/mainpp.cpp:17:6:void led_cb(const std_msgs::Empty&)	1
+../Core/Src/mainpp.cpp:29:6:void setup()	1
+../Core/Src/mainpp.cpp:38:6:void loop()	1
 ../Core/Inc/ros_lib/ros/msg.h:188:15:static void ros::Msg::varToArr(A, V) [with A = unsigned char*; V = long unsigned int]	2
 ../Core/Inc/ros_lib/ros/msg.h:196:15:static void ros::Msg::arrToVar(V&, A) [with V = long unsigned int; A = unsigned char*]	2
 ../Core/Inc/ros_lib/ros/subscriber.h:44:7:ros::Subscriber_::Subscriber_()	1
@@ -80,10 +85,10 @@
 ../Core/Inc/ros_lib/ros/node_handle.h:377:8:void ros::NodeHandle_<Hardware, MAX_SUBSCRIBERS, MAX_PUBLISHERS, INPUT_SIZE, OUTPUT_SIZE>::setNow(const ros::Time&) [with Hardware = STM32Hardware; int MAX_SUBSCRIBERS = 25; int MAX_PUBLISHERS = 25; int INPUT_SIZE = 512; int OUTPUT_SIZE = 512]	1
 ../Core/Inc/ros_lib/ros/node_handle.h:531:8:void ros::NodeHandle_<Hardware, MAX_SUBSCRIBERS, MAX_PUBLISHERS, INPUT_SIZE, OUTPUT_SIZE>::logerror(const char*) [with Hardware = STM32Hardware; int MAX_SUBSCRIBERS = 25; int MAX_PUBLISHERS = 25; int INPUT_SIZE = 512; int OUTPUT_SIZE = 512]	1
 ../Core/Inc/ros_lib/ros/node_handle.h:510:8:void ros::NodeHandle_<Hardware, MAX_SUBSCRIBERS, MAX_PUBLISHERS, INPUT_SIZE, OUTPUT_SIZE>::log(char, const char*) [with Hardware = STM32Hardware; int MAX_SUBSCRIBERS = 25; int MAX_PUBLISHERS = 25; int INPUT_SIZE = 512; int OUTPUT_SIZE = 512]	1
-../Core/Src/mainpp.cpp:46:1:void __static_initialization_and_destruction_0(int, int)	3
+../Core/Src/mainpp.cpp:59:1:void __static_initialization_and_destruction_0(int, int)	3
 ../Core/Inc/ros_lib/ros/subscriber.h:114:16:void ros::Subscriber<MsgT, void>::callback(unsigned char*) [with MsgT = std_msgs::Empty]	1
 ../Core/Inc/ros_lib/ros/subscriber.h:128:15:int ros::Subscriber<MsgT, void>::getEndpointType() [with MsgT = std_msgs::Empty]	1
 ../Core/Inc/ros_lib/ros/subscriber.h:120:24:const char* ros::Subscriber<MsgT, void>::getMsgType() [with MsgT = std_msgs::Empty]	1
 ../Core/Inc/ros_lib/ros/subscriber.h:124:24:const char* ros::Subscriber<MsgT, void>::getMsgMD5() [with MsgT = std_msgs::Empty]	1
 ../Core/Inc/ros_lib/ros/node_handle.h:338:16:bool ros::NodeHandle_<Hardware, MAX_SUBSCRIBERS, MAX_PUBLISHERS, INPUT_SIZE, OUTPUT_SIZE>::connected() [with Hardware = STM32Hardware; int MAX_SUBSCRIBERS = 25; int MAX_PUBLISHERS = 25; int INPUT_SIZE = 512; int OUTPUT_SIZE = 512]	1
-../Core/Src/mainpp.cpp:46:1:cpp)	1
+../Core/Src/mainpp.cpp:59:1:cpp)	1

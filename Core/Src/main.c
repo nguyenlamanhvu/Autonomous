@@ -46,6 +46,7 @@ uint16_t error;
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 DMA_HandleTypeDef hdma_tim1_ch1;
 
 UART_HandleTypeDef huart2;
@@ -63,6 +64,7 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -72,6 +74,15 @@ static void MX_USART2_UART_Init(void);
 imu_9250_t* imu_9250_0;
 Struct_Angle Angle;
 motor_t* motor_0;
+int timer;
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim == &htim2)
+	{
+		motor_0->Prop_p.timer_counter = __HAL_TIM_GET_COUNTER(&htim2);
+		motor_0->Prop_p.measure_speed = motor_0->Prop_p.timer_counter /4;
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -106,11 +117,12 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_USART2_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-//  imu_9250_0 = IMU_9250_Create();
-//  calibrateGyro(imu_9250_0, 500);
+  imu_9250_0 = IMU_9250_Create();
+  calibrateGyro(imu_9250_0, 500);
   motor_0 = MOTOR_Create();
-  motor_0->Prop_p.speed = 20;
+  motor_0->Prop_p.out_speed = 20;
   setup();
   /* USER CODE END 2 */
 
@@ -118,9 +130,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  imu_9250_0->get_data(imu_9250_0);			// pointer store address of MPU9250_ProcessData function
+	  imu_9250_0->get_data(imu_9250_0);			// pointer store address of MPU9250_ProcessData function
 //	  CalculateGyroAngle(&Angle, imu_9250_0);
 	  motor_0->control_speed(motor_0);
+	  timer++;
 	  loop();
     /* USER CODE END WHILE */
 
@@ -280,6 +293,55 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 4294967295;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 0;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 

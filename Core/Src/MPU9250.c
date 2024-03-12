@@ -89,7 +89,7 @@ void start_imu(void)
 	  1		+-500 degree/s
 	  2		+-1000 degree/s
 	  3		+-2000 degree/s	*/
-	uint8_t FS_SCALE_GYRO = 0x00;
+	uint8_t FS_SCALE_GYRO = 0x03;
 	MPU9250_Writebyte(MPU9250_ADDR, MPU9250_GYRO_CONFIG, FS_SCALE_GYRO << 3);
 	HAL_Delay(50);
 
@@ -127,9 +127,9 @@ void start_imu(void)
 	uint8_t raw_data[3];
 	// Read the x-, y-, and z-axis calibration values
 	MPU9250_Readbytes(AK8963_ADDRESS, AK8963_ASAX, 3, &raw_data[0]);
-	mag_bias_factory[0] = (float)(raw_data[0] - 128) / 256. + 1.;  // Return x-axis sensitivity adjustment values, etc.
-	mag_bias_factory[1] = (float)(raw_data[1] - 128) / 256. + 1.;
-	mag_bias_factory[2] = (float)(raw_data[2] - 128) / 256. + 1.;
+	mag_bias_factory[0] = (float)((raw_data[0] - 128) / 256. + 1.) * Magnetometer_Sensitivity_Scale_Factor;  // Return x-axis sensitivity adjustment values, etc.
+	mag_bias_factory[1] = (float)((raw_data[1] - 128) / 256. + 1.) * Magnetometer_Sensitivity_Scale_Factor;
+	mag_bias_factory[2] = (float)((raw_data[2] - 128) / 256. + 1.) * Magnetometer_Sensitivity_Scale_Factor;
 	HAL_Delay(50);
 	//Power down magnetometer
 	MPU9250_Writebyte(AK8963_ADDRESS, AK8963_CNTL1, 0x00);
@@ -211,6 +211,10 @@ void MPU9250_GetMagRawData(imu_9250_t *mpu9250)
 			mpu9250->pt1_p.mag_x_raw = ((int16_t)raw_data[1] << 8) | raw_data[0];  // Turn the MSB and LSB into a signed 16-bit value
 			mpu9250->pt1_p.mag_y_raw = ((int16_t)raw_data[3] << 8) | raw_data[2];  // Data stored as little Endian
 			mpu9250->pt1_p.mag_z_raw = ((int16_t)raw_data[5] << 8) | raw_data[4];
+
+			mpu9250->pt1_p.mag_x = mpu9250->pt1_p.mag_x_raw * mag_bias_factory[0];
+			mpu9250->pt1_p.mag_y = mpu9250->pt1_p.mag_y_raw * mag_bias_factory[1];
+			mpu9250->pt1_p.mag_z = mpu9250->pt1_p.mag_z_raw * mag_bias_factory[2];
 		}
 	}
 }
@@ -218,15 +222,16 @@ void MPU9250_GetMagRawData(imu_9250_t *mpu9250)
 void MPU9250_DataConvert(imu_9250_t *mpu9250)
 {
 	// printf("LSB_Sensitivity_GYRO: %f, LSB_Sensitivity_ACC: %f\n",LSB_Sensitivity_GYRO,LSB_Sensitivity_ACC);
-	mpu9250->pt1_p.acc_x = mpu9250->pt1_p.acc_x_raw / LSB_Sensitivity_ACC;
-	mpu9250->pt1_p.acc_y = mpu9250->pt1_p.acc_y_raw / LSB_Sensitivity_ACC;
-	mpu9250->pt1_p.acc_z = mpu9250->pt1_p.acc_z_raw / LSB_Sensitivity_ACC;
+	mpu9250->pt1_p.acc_x = 9.8 * mpu9250->pt1_p.acc_x_raw / LSB_Sensitivity_ACC;
+	mpu9250->pt1_p.acc_y = 9.8 * mpu9250->pt1_p.acc_y_raw / LSB_Sensitivity_ACC;
+	mpu9250->pt1_p.acc_z = 9.8 * mpu9250->pt1_p.acc_z_raw / LSB_Sensitivity_ACC;
 
 	mpu9250->pt1_p.temperature = (float)(mpu9250->pt1_p.temperature_raw) / 340 + 36.53;
 
-	mpu9250->pt1_p.gyro_x = (mpu9250->pt1_p.gyro_x_raw) / LSB_Sensitivity_GYRO;
-	mpu9250->pt1_p.gyro_y = (mpu9250->pt1_p.gyro_y_raw) / LSB_Sensitivity_GYRO;
-	mpu9250->pt1_p.gyro_z = (mpu9250->pt1_p.gyro_z_raw - mpu9250->pt1_p.cal_gyz) / (LSB_Sensitivity_GYRO * 10);
+	mpu9250->pt1_p.gyro_x = DEG_TO_RAD * (mpu9250->pt1_p.gyro_x_raw) / LSB_Sensitivity_GYRO;
+	mpu9250->pt1_p.gyro_y = DEG_TO_RAD * (mpu9250->pt1_p.gyro_y_raw) / LSB_Sensitivity_GYRO;
+	mpu9250->pt1_p.gyro_z = DEG_TO_RAD * (mpu9250->pt1_p.gyro_z_raw) / LSB_Sensitivity_GYRO;
+	//mpu9250->pt1_p.gyro_z = (mpu9250->pt1_p.gyro_z_raw - mpu9250->pt1_p.cal_gyz) / (LSB_Sensitivity_GYRO * 10);
 }
 
 void calibrateGyro(imu_9250_t *mpu9250, uint16_t numCalPoints)
