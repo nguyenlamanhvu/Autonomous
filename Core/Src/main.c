@@ -121,8 +121,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   imu_9250_0 = IMU_9250_Create();
   calibrateGyro(imu_9250_0, 500);
-  motor_0 = MOTOR_Create();
-  motor_0->Prop_p.out_speed = 20;
+//  motor_0 = MOTOR_Create();
+//  motor_0->Prop_p.out_speed = 20;
   setup();
   /* USER CODE END 2 */
 
@@ -132,8 +132,8 @@ int main(void)
   {
 	  imu_9250_0->get_data(imu_9250_0);			// pointer store address of MPU9250_ProcessData function
 //	  CalculateGyroAngle(&Angle, imu_9250_0);
-	  motor_0->control_speed(motor_0);
-	  timer++;
+//	  motor_0->control_speed(motor_0);
+//	  timer++;
 	  loop();
     /* USER CODE END WHILE */
 

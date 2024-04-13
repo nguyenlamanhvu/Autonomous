@@ -40,6 +40,7 @@ void loop(void) {
   str_msg.data = hello;
   chatter.publish(&str_msg);
   // Imu message:
+  imu_msg.header.frame_id = "imu_link";
   imu_msg.linear_acceleration.x = imu_9250_0->pt1_p.acc_x;
   imu_msg.linear_acceleration.y = imu_9250_0->pt1_p.acc_y;
   imu_msg.linear_acceleration.z = imu_9250_0->pt1_p.acc_z;
@@ -47,13 +48,16 @@ void loop(void) {
   imu_msg.angular_velocity.x = imu_9250_0->pt1_p.gyro_x;
   imu_msg.angular_velocity.y = imu_9250_0->pt1_p.gyro_y;
   imu_msg.angular_velocity.z = imu_9250_0->pt1_p.gyro_z;
+  imu_msg.header.stamp = nh.now();
   mpu9250.publish(&imu_msg);
 
+  mag_msg.header.frame_id = "imu_link";
   mag_msg.magnetic_field.x = imu_9250_0->pt1_p.mag_x;
   mag_msg.magnetic_field.y = imu_9250_0->pt1_p.mag_y;
   mag_msg.magnetic_field.z = imu_9250_0->pt1_p.mag_z;
+  mag_msg.header.stamp = nh.now();
   magnetic.publish(&mag_msg);
 
   nh.spinOnce();
-  HAL_Delay(500);
+  HAL_Delay(100);
 }
